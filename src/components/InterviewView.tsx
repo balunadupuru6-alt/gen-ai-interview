@@ -17,6 +17,7 @@ import type {
   QuestionRecord,
 } from '../types/interview';
 import { resolveEffectiveRole, validateAnswerInput } from '../utils/scoring';
+import { postJson } from '../utils/api';
 import InterviewerOrb from './InterviewerOrb';
 
 interface InterviewViewProps {
@@ -141,10 +142,9 @@ export default function InterviewView({
     setIsEvaluating(true);
 
     try {
-      const response = await fetch('/api/interview/evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const data = await postJson<{ evaluation: AnswerEvaluation }>(
+        '/api/interview/evaluate',
+        {
           config,
           question: currentQuestion,
           answer: answerText.trim(),
@@ -153,13 +153,8 @@ export default function InterviewView({
             score: r.evaluation.score,
             coachingNote: r.evaluation.coachingNote,
           })),
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to evaluate your response.');
-      }
+        },
+      );
 
       const evaluation: AnswerEvaluation = data.evaluation;
       const newRecord: QuestionRecord = {

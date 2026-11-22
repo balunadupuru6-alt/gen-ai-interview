@@ -18,6 +18,7 @@ import {
   resolveEffectiveRole,
   validateInterviewConfig,
 } from './utils/scoring';
+import { postJson } from './utils/api';
 import { deleteSessionById, loadSessions, upsertSession } from './utils/storage';
 
 const DEFAULT_CONFIG: InterviewConfig = {
@@ -87,18 +88,12 @@ export default function App() {
     setIsGenerating(true);
 
     try {
-      const response = await fetch('/api/interview/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config),
-      });
+      const data = await postJson<{ questions?: InterviewQuestion[] }>(
+        '/api/interview/generate',
+        config,
+      );
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate mock interview.');
-      }
-
-      const generated = Array.isArray(data.questions) ? (data.questions as InterviewQuestion[]) : [];
+      const generated = Array.isArray(data.questions) ? data.questions : [];
       if (generated.length === 0) {
         throw new Error('No interview questions were generated. Please try again.');
       }
@@ -128,16 +123,11 @@ export default function App() {
       day: 'numeric',
     });
 
-    const summaryRes = await fetch('/api/interview/summary', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ config, records }),
-    });
-
-    const summaryData = await summaryRes.json();
-    if (!summaryRes.ok) {
-      throw new Error(summaryData.error || 'Failed to synthesize final report summary.');
-    }
+    const summaryData = await postJson<{
+      headlineSummary: string;
+      skillsToImprove: string[];
+      recommendations: string[];
+    }>('/api/interview/summary', { config, records });
 
     const completedSession: InterviewSession = {
       id: `session-${now.getTime()}`,
