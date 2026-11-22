@@ -12,8 +12,17 @@ export class ServiceError extends Error {
 }
 
 export function getGeminiClient(): GoogleGenAI | null {
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
-  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+  const candidates = [
+    process.env.GEMINI_API_KEY,
+    process.env.API_KEY,
+    process.env.GOOGLE_API_KEY,
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+  ];
+  const apiKey = candidates
+    .map((v) => v?.trim().replace(/^["']|["']$/g, '') ?? '')
+    .find((v) => v.length > 0 && v !== 'MY_GEMINI_API_KEY');
+
+  if (!apiKey) {
     return null;
   }
   return new GoogleGenAI({
