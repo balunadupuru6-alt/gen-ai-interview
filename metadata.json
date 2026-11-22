@@ -1,0 +1,6 @@
+{
+  "name": "AetherPrep AI",
+  "description": "Futuristic 3D Mock Interview Assistant with adaptive role-specific questions, real-time Gemini evaluation, and 3D analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
